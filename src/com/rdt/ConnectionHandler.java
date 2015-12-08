@@ -125,6 +125,7 @@ public class ConnectionHandler implements Subscriber {
                 } else {
                     fileLen = ack.getAckNo();
                     serverPort = ack.getPort();
+                    socket.connect(serverIP, serverPort);
                 }
             }else {
                 System.err.println("File Not found");
