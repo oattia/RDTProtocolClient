@@ -30,7 +30,7 @@ public class ConnectionHandler implements Subscriber {
     private TimeoutTimerTask current_ttt;
 
     private static final Timer TIMER = new Timer(true);
-    private static final long NICENESS = 50L; // milliseconds to sleep every iteration
+    private static final long NICENESS = 1L; // milliseconds to sleep every iteration
     private static final int CHUNK_SIZE = 1024;
     private static final long MAX_PKT_TIMEOUT = 60_000L;
     private static final int EXPECTED_PKT_LENGTH = 2048;
@@ -158,44 +158,37 @@ public class ConnectionHandler implements Subscriber {
         boolean error = false;
         while (!strategy.isDone() && !error) {
             // send ACK's
-            long seqNo = strategy.getNextAckNo();
-            if(seqNo != -1L) {
+            long seqNo;
+            while((seqNo = strategy.getNextAckNo()) != -1L) {
                 AckPacket pkt = new AckPacket(seqNo, serverPort, serverIP);
                 sendAckPacket(pkt);
             }
 
             // write to file
-            long seqNoToWrite = strategy.getNextSeqNoToWrite();
-            while(seqNoToWrite != -1L){
+            long seqNoToWrite;
+            while((seqNoToWrite = strategy.getNextSeqNoToWrite()) != -1L) {
                 try {
                     fileStream.write(receivedPackets.get(seqNoToWrite).getChunkData() );
                     receivedPackets.remove(seqNoToWrite);
+                    strategy.wroteSeqNo(seqNoToWrite);
                 } catch (IOException e) {
                     System.err.println("Could not write to file");
                     error = true;
                     break;
                 }
-                strategy.wroteSeqNo(seqNoToWrite);
-                seqNoToWrite = strategy.getNextSeqNoToWrite();
             }
 
             try {
                 fileStream.flush();
-            } catch (IOException e) {
-
-            }
+            } catch (IOException e) { }
 
             // Check if new DataPackets arrived OR timer fired
-            if(!mailbox.isEmpty()) {
-                if(! consumeMailbox() )     // timer fired: server timed-out
-                    break;
-            }
+            if(! consumeMailbox() )     // timer fired: server timed-out
+                break;
 
             try {
                 Thread.sleep(NICENESS);
-            } catch (InterruptedException e){
-                // TODO
-            }
+            } catch (InterruptedException e){ }
         }
         System.out.println(strategy.isDone() + " : " + error);
         clean();
@@ -232,8 +225,7 @@ public class ConnectionHandler implements Subscriber {
         }
     }
 
-    private boolean consumeMailbox() {      // returns false if timer fired => server timed-out
-        boolean firstTimeout = true;
+    private boolean consumeMailbox() {     // returns false if timer fired => server timed-out
         while (!mailbox.isEmpty()) {
             Event e = mailbox.poll();
             if(e instanceof TimeoutEvent) {
@@ -252,11 +244,10 @@ public class ConnectionHandler implements Subscriber {
         System.out.println("Received ..." + e.getSeqNo());
         long seqNo = e.getSeqNo();
         if(e.getDataPkt().isCorrupted()) {
-            strategy.receivedData(-1L);
             return;
         }
 
-        if( strategy.receivedData(seqNo) )      // should I keep that packet?
+        if(strategy.receivedData(seqNo))      // should I keep that packet?
             receivedPackets.put(seqNo, e.getDataPkt());
     }
 

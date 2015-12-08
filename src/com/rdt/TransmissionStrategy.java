@@ -24,6 +24,7 @@ public abstract class TransmissionStrategy {
 
         this.nextSeqNum = initSeqNo;
         this.base = initSeqNo;
+        this.nextSeqToWrite = initSeqNo;
     }
 
     abstract boolean isDone();
@@ -38,13 +39,32 @@ public abstract class TransmissionStrategy {
     * */
     abstract boolean receivedData(long seqNo);
 
+    abstract long getNextSeqNoToWrite();
+
+    abstract void wroteSeqNo(long seqNoToWrite);
+
     public long[] getWindow(){
         long[] w = { base, base + windowSize };
         return w;
     }
 
+    public int getNumOfPackets() {
+        return numOfPackets;
+    }
 
-    abstract long getNextSeqNoToWrite();
+    public long getInitSeqNo() {
+        return initSeqNo;
+    }
 
-    abstract void wroteSeqNo(long seqNoToWrite);
+    public int getWindowSize() {
+        return windowSize;
+    }
+
+    public long getBase() {
+        return base;
+    }
+
+    public long getNextAckNum() {
+        return nextAckNum;
+    }
 }
