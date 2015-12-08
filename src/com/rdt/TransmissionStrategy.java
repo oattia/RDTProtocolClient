@@ -9,7 +9,7 @@ public abstract class TransmissionStrategy {
     // Running variables
     protected int windowSize;
     protected long base; // first not acked.
-    protected long nextAckNum;
+    protected long nextSeqNum;
     protected long nextSeqToWrite;
 
     public static final String STOP_AND_WAIT = "StopAndWait";
@@ -22,9 +22,8 @@ public abstract class TransmissionStrategy {
         this.initSeqNo = initSeqNo;
         this.windowSize = initWindowSize;
 
-        this.nextAckNum = initSeqNo;
+        this.nextSeqNum = initSeqNo;
         this.base = initSeqNo;
-        this.nextSeqToWrite = -1;
     }
 
     abstract boolean isDone();
