@@ -9,7 +9,8 @@ public abstract class TransmissionStrategy {
     // Running variables
     protected int windowSize;
     protected long base; // first not acked.
-    protected long nextSeqNum;
+    protected long nextAckNum;
+    protected long nextSeqToWrite;
 
     public static final String STOP_AND_WAIT = "StopAndWait";
     public static final String GO_BACK_N = "GoBackN";
@@ -21,8 +22,9 @@ public abstract class TransmissionStrategy {
         this.initSeqNo = initSeqNo;
         this.windowSize = initWindowSize;
 
-        this.nextSeqNum = initSeqNo;
+        this.nextAckNum = initSeqNo;
         this.base = initSeqNo;
+        this.nextSeqToWrite = initSeqNo;
     }
 
     abstract boolean isDone();
@@ -37,13 +39,32 @@ public abstract class TransmissionStrategy {
     * */
     abstract boolean receivedData(long seqNo);
 
+    abstract long getNextSeqNoToWrite();
+
+    abstract void wroteSeqNo(long seqNoToWrite);
+
     public long[] getWindow(){
         long[] w = { base, base + windowSize };
         return w;
     }
 
+    public int getNumOfPackets() {
+        return numOfPackets;
+    }
 
-    abstract long getNextSeqNoToWrite();
+    public long getInitSeqNo() {
+        return initSeqNo;
+    }
 
-    abstract void wroteSeqNo(long seqNoToWrite);
+    public int getWindowSize() {
+        return windowSize;
+    }
+
+    public long getBase() {
+        return base;
+    }
+
+    public long getNextAckNum() {
+        return nextAckNum;
+    }
 }

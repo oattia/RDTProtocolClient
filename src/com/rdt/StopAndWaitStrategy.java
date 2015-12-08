@@ -2,9 +2,6 @@ package com.rdt;
 
 public class StopAndWaitStrategy extends TransmissionStrategy {
 
-    protected long nextAckNum;
-    protected long nextSeqToWrite;
-
     public StopAndWaitStrategy(int numOfPackets, long initSeqNo) {
         super(numOfPackets, initSeqNo, 1);
         nextAckNum = 1;
@@ -14,12 +11,13 @@ public class StopAndWaitStrategy extends TransmissionStrategy {
 
     @Override
     public boolean isDone() {
-        return (base == (numOfPackets + initSeqNo)) && (nextAckNum == base);
+        return (base == (numOfPackets + initSeqNo)) && (nextAckNum == base) && (nextSeqToWrite == base);
     }
 
     @Override
     void sentAck(long seqNo) {
-        nextAckNum++;
+        if(seqNo == nextAckNum)
+            nextAckNum++;
     }
 
     @Override
@@ -50,6 +48,7 @@ public class StopAndWaitStrategy extends TransmissionStrategy {
 
     @Override
     void wroteSeqNo(long seqNoToWrite) {
-        nextSeqToWrite++;
+        if(seqNoToWrite == nextSeqToWrite)
+            nextSeqToWrite++;
     }
 }

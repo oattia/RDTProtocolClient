@@ -7,32 +7,42 @@ public class GoBackNStrategy extends TransmissionStrategy {
 
     @Override
     boolean isDone() {
-        return false;
+        return base == (numOfPackets + initSeqNo) && (nextSeqToWrite == base);
     }
 
     @Override
     void sentAck(long seqNo) {
-
+        nextAckNum++;
     }
 
     @Override
     long getNextAckNo() {
-        return 0;
+        if(nextAckNum < base)
+            return nextAckNum;
+        else
+            return -1;
     }
 
     @Override
     boolean receivedData(long seqNo) {       // seqNo = -1L indicates corrupted data received
+        if(seqNo == base) {
+            base++;
+            return true;
+        }
         return false;
     }
 
     @Override
     long getNextSeqNoToWrite() {
-        return 0;
+        if(nextSeqToWrite < base)
+            return nextSeqToWrite;
+        else
+            return -1;
     }
 
     @Override
     void wroteSeqNo(long seqNoToWrite) {
-
+        nextSeqToWrite++;
     }
 
 }
