@@ -2,7 +2,7 @@ localhost
 3390
 1
 ./truth.jpg
-1234
+5678
 0.0
-StopAndWait
-1
+GoBackN
+5

@@ -34,6 +34,8 @@ public class GoBackNStrategy extends TransmissionStrategy {
             base++;
             lock = true;
             return true;
+        } else if(seqNo < base) {
+            lock = false;
         }
         return false;
     }

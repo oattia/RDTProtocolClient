@@ -33,6 +33,8 @@ public class StopAndWaitStrategy extends TransmissionStrategy {
         if(seqNo == base) {
             base++;
             return true;
+        } else if(seqNo == base-1) {        // duplicate data
+            nextAckNum --;
         }
         return false;
     }

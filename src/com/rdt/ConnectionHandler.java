@@ -19,8 +19,8 @@ public class ConnectionHandler implements Subscriber {
     private Thread socketListenerThread;
     private FileOutputStream fileStream;
     private Random rng;
-    private float plp = 0.05f;         // packet loss probability: from 0 to 100
-    private float pep = 0.05f;         // packet error probability: from 0 to 100
+    private float plp;         // packet loss probability: from 0 to 100
+    private float pep = 0.0f;         // packet error probability: from 0 to 100
     private String strategyName;
     private String fileName;
     private int windowSize;
@@ -32,7 +32,7 @@ public class ConnectionHandler implements Subscriber {
     private static final Timer TIMER = new Timer(true);
     private static final long NICENESS = 1L; // milliseconds to sleep every iteration
     private static final int CHUNK_SIZE = 1024;
-    private static final long MAX_PKT_TIMEOUT = 6000_000L;
+    private static final long MAX_PKT_TIMEOUT = 6_000_000L;
     private static final int EXPECTED_PKT_LENGTH = 2048;
 
 
@@ -210,14 +210,16 @@ public class ConnectionHandler implements Subscriber {
 
     private void sendAckPacket(AckPacket pkt) {
         try {
-            if(rng.nextFloat() < pep) {
-                byte[] data = pkt.getChunkData();
-                int bitWithError = rng.nextInt(8 * data.length);
-                data[(bitWithError / 8)] ^= (1 << (bitWithError % 8));
-                pkt.setChunkData(data);
-                System.out.println("Corrupted data in " + pkt.getAckNo());
+            if(rng.nextFloat() < pep) { // send corrupted
+                pkt.setChecksum(pkt.getCheckSum() * 2 + 1);
+                if(pkt.isCorrupted()) {
+                    System.out.println("Corrupted data in " + pkt.getAckNo());
+                } else {
+                    System.out.println("MISTAKE");
+                }
+            } else {
+                pkt.refreshChecksum();
             }
-
             if(rng.nextFloat() >= plp) {
                 socket.send(pkt.createDatagramPacket());
                 System.out.println("Sent Ack for: " + pkt.getAckNo());
