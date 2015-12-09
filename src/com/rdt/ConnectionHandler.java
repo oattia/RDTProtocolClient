@@ -111,6 +111,7 @@ public class ConnectionHandler implements Subscriber {
 
         // receive server response
         current_ttt = new TimeoutTimerTask(this.socket);
+        current_ttt.subscribe(this);
         TIMER.schedule(current_ttt, MAX_PKT_TIMEOUT);
         DatagramPacket dtgrm = new DatagramPacket(new byte[EXPECTED_PKT_LENGTH], EXPECTED_PKT_LENGTH);
         try {
@@ -153,6 +154,7 @@ public class ConnectionHandler implements Subscriber {
             return;
 
         current_ttt = new TimeoutTimerTask(this.socket);
+        current_ttt.subscribe(this);
         TIMER.schedule(current_ttt, MAX_PKT_TIMEOUT);
 
         boolean error = false;
@@ -238,6 +240,7 @@ public class ConnectionHandler implements Subscriber {
                 handleDataRecvEvent((DataRecvEvent) e);
                 current_ttt.cancel();
                 current_ttt = new TimeoutTimerTask(this.socket);
+                current_ttt.subscribe(this);
                 TIMER.schedule(current_ttt, MAX_PKT_TIMEOUT);
             }
         }

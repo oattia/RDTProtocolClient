@@ -64,7 +64,4 @@ public abstract class TransmissionStrategy {
         return base;
     }
 
-    public long getNextAckNum() {
-        return nextAckNum;
-    }
 }
