@@ -2,6 +2,7 @@ package com.rdt;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.util.Random;
 
 public abstract class Packet {
 
@@ -72,12 +73,28 @@ public abstract class Packet {
         System.arraycopy(chunkData, POS_CHECKSUM, receivedChecksum, 0, 2);
 
         checkSum = computeChecksum(data, 2, PACKET_HEADER_SIZE + chunkLength);
-        isCorrupted = (checkSum == getInt(receivedChecksum) );
+        isCorrupted = (checkSum  == getInt(receivedChecksum));
 
         port = packet.getPort();
         ip = packet.getAddress();
     }
 
+
+    public static void main(String[] args) {
+        byte[] data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+        int check1 = computeChecksum(data, 0, 10);
+        int check11 = getInt(getBytes(check1));
+        System.out.println(check1);
+        System.out.println(check11);
+
+        Random rng = new Random(System.currentTimeMillis());
+        int bitWithError = rng.nextInt(8 * data.length);
+        System.out.println(bitWithError);
+        data[(bitWithError / 8)] ^= (1 << (bitWithError % 8));
+
+        int check2 = computeChecksum(data, 0, 10);
+        System.out.println(check2);
+    }
 
     public DatagramPacket createDatagramPacket() {
         byte[] packetData = new byte[chunkLength + PACKET_HEADER_SIZE];

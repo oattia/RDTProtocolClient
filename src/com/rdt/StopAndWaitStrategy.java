@@ -33,9 +33,8 @@ public class StopAndWaitStrategy extends TransmissionStrategy {
         if(seqNo == base) {
             base++;
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     @Override

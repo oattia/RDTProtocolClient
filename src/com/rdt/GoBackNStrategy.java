@@ -1,8 +1,12 @@
 package com.rdt;
 
 public class GoBackNStrategy extends TransmissionStrategy {
+
+    private boolean lock;
+    
     public GoBackNStrategy(int numOfPackets, int initSeqNo, int initWindowSize) {
         super(numOfPackets, initSeqNo, initWindowSize);
+        lock = false;
     }
 
     @Override
@@ -12,21 +16,23 @@ public class GoBackNStrategy extends TransmissionStrategy {
 
     @Override
     void sentAck(long seqNo) {
-        nextAckNum++;
     }
 
     @Override
     long getNextAckNo() {
-        if(nextAckNum < base)
-            return nextAckNum;
-        else
-            return -1;
+        if(!lock)
+            return -1L;
+
+        long toRet = base-1;
+        lock = false;
+        return toRet;
     }
 
     @Override
     boolean receivedData(long seqNo) {       // seqNo = -1L indicates corrupted data received
         if(seqNo == base) {
             base++;
+            lock = true;
             return true;
         }
         return false;
@@ -42,7 +48,8 @@ public class GoBackNStrategy extends TransmissionStrategy {
 
     @Override
     void wroteSeqNo(long seqNoToWrite) {
-        nextSeqToWrite++;
+        if(seqNoToWrite == nextSeqToWrite)
+            nextSeqToWrite++;
     }
 
 }

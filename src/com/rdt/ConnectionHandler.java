@@ -32,7 +32,7 @@ public class ConnectionHandler implements Subscriber {
     private static final Timer TIMER = new Timer(true);
     private static final long NICENESS = 1L; // milliseconds to sleep every iteration
     private static final int CHUNK_SIZE = 1024;
-    private static final long MAX_PKT_TIMEOUT = 60_000L;
+    private static final long MAX_PKT_TIMEOUT = 6000_000L;
     private static final int EXPECTED_PKT_LENGTH = 2048;
 
 
@@ -213,13 +213,17 @@ public class ConnectionHandler implements Subscriber {
                 int bitWithError = rng.nextInt(8 * data.length);
                 data[(bitWithError / 8)] ^= (1 << (bitWithError % 8));
                 pkt.setChunkData(data);
+                System.out.println("Corrupted data in " + pkt.getAckNo());
             }
 
-            if(rng.nextFloat() >= plp)
+            if(rng.nextFloat() >= plp) {
                 socket.send(pkt.createDatagramPacket());
+                System.out.println("Sent Ack for: " + pkt.getAckNo());
+            } else {
+                System.out.println("Dropped Ack for: " + pkt.getAckNo());
+            }
 
             strategy.sentAck(pkt.getAckNo());
-            System.out.println("Acked: " + pkt.getAckNo());
         } catch (IOException e){
             //TODO
         }
@@ -241,10 +245,12 @@ public class ConnectionHandler implements Subscriber {
     }
 
     private void handleDataRecvEvent(DataRecvEvent e) {
-        System.out.println("Received ..." + e.getSeqNo());
         long seqNo = e.getSeqNo();
         if(e.getDataPkt().isCorrupted()) {
+            System.out.println("Received corrupted " + e.getSeqNo());
             return;
+        } else {
+            System.out.println("Received correctly " + e.getSeqNo());
         }
 
         if(strategy.receivedData(seqNo))      // should I keep that packet?
